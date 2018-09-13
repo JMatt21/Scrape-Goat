@@ -19,6 +19,11 @@ const ArticleSchema = new Schema({
         required: true
     },
 
+    isSaved: {
+        type: Boolean,
+        default: false
+    },
+    
     comments: [
         {
             // Store ObjectIds in the array

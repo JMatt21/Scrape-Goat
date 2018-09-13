@@ -1,52 +1,67 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="#">Navbar</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-        aria-expanded="false" aria-label="Toggle navigation">
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+    <a class="navbar-brand" href="/">Scrape-Goat</a>
+    <a id="scrape" class="nav-active" href="">Scrape Articles
+        <span class="sr-only">(current)</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
     </button>
 
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-                <a class="nav-link" href="#">Home
-                    <span class="sr-only">(current)</span>
-                </a>
+            <li class="nav-item">
+                <a class="nav-link" href="/saved">Saved Articles</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#">Link</a>
-            </li>
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true"
-                    aria-expanded="false">
-                    Dropdown
-                </a>
-                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-                    <a class="dropdown-item" href="#">Action</a>
-                    <a class="dropdown-item" href="#">Another action</a>
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="#">Something else here</a>
-                </div>
+                <a class="nav-link" href="/api/articles">Articles API</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link disabled" href="#">Disabled</a>
+                <a class="nav-link" href="/api/comments">Comments API</a>
             </li>
         </ul>
-        <form class="form-inline my-2 my-lg-0">
-            <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+        <form class="form-inline my-2 my-lg-0" action="/search" method="get">
+            <input class="form-control mr-sm-2" name="searchTerm" type="search" placeholder="Search" aria-label="Search">
             <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
         </form>
     </div>
 </nav>
 
-<div>
+<div id="content" class="mx-auto" style="width: 90%;margin-top: 6rem !important">
     {{#each article}}
-    <h1>Title: {{title}}</h1>
-    <h2>Summary: {{summary}}</h2>
-    <h2>url: {{url}}</h2>
-    <h2>Comments: </h2>
-    {{#each this.comments}}
-    <h3>text: {{text}} </h3>
-    {{/each}}
+    <div class="p-2 mt-3 bg-faded border rounded" data-id={{_id}}>
+        <h4>
+            <a href="https://www.nytimes.com{{url}}">{{title}}</a>
+            <button type="button"
+            {{#if isSaved}} 
+                class="ml-3 btn btn-danger float-right save"
+                save-status={{isSaved}}>Un-Save
+            {{else}}
+                class="ml-3 btn btn-primary float-right save"
+                save-status={{isSaved}}>Save
+            {{/if}} 
+            </button>
+        </h4>
+        <p>{{summary}}</p>
+        <button type="button" class="btn btn-info" status="hidden">Show Comments</button>
+        <button type="button" id="new-comment" class="btn btn-secondary">Add A Comment</button>
+        <div class="textbox" style="display:none;">
+            <textarea rows="5" cols="45" class="mt-3" style="resize:none;"></textarea>
+            <button type="button" id="submit-comment" style="display:grid" class="btn btn-link">Submit Comment</button>
+        </div>
+        <div class="container comments mt-2 bd-highlight" style="display:none;word-wrap: break-word;">
+            {{#if comments}}
+                {{#each this.comments}}
+                <div class="row mt-2 border rounded">
+                    <p class="col-11 mb-0" data-id={{_id}}>{{text}} </p>
+                    <button type="button" class="btn btn-sm btn-danger col-1 delete-comment">X</button>
+                </div>
+                {{/each}}
+            {{else}}
+                <h5>No comments here! Be the first to comment!</h5>
+            {{/if}}
+        </div>
+    </div>
     {{/each}}
 </div>
-<script src="./public/js/index.js"></script> 
+<script src="/js/index.js"></script>

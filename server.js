@@ -36,7 +36,6 @@ app.use(express.static("public"));
 
 // Set Handlebars.
 var exphbs = require("express-handlebars");
-
 app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
@@ -48,7 +47,7 @@ var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/mongoHeadlines
 mongoose.Promise = Promise;
 mongoose.connect(MONGODB_URI);
 
-// Routes
+// HTML Routes
 
 app.get("/", (req, res) => {
     db.Article.find({})
@@ -59,6 +58,26 @@ app.get("/", (req, res) => {
         });
 });
 
+app.get("/saved", (req, res) => {
+    db.Article.find({ isSaved: true })
+        .populate("comments")
+        .then(function (data) {
+            res.render("index", { article: data })
+        })
+});
+
+app.get("/search", (req, res) => {
+    const searchTerm = req.query.searchTerm;
+    console.log(`Searching for: ${searchTerm}`);
+    db.Article.find({ title: { $regex: `.*${searchTerm}.*` } })
+        .populate("comments")
+        .then(function (data) {
+            console.log(data);
+            res.render("index", { article: data })
+        })
+});
+
+// API Routes
 app.get("/scrape", (req, res) => {
     // let results = [];
     request("https://www.nytimes.com/search?query=goats", function (err, response, html) {
@@ -96,6 +115,20 @@ app.get("/scrape", (req, res) => {
     });
 });
 
+app.get("/api/articles", (req, res) => {
+    db.Article.find({})
+        .then(function(dbArticles){
+            res.json(dbArticles);
+        });
+});
+
+app.get("/api/comments", (req, res) => {
+    db.UserComment.find({})
+        .then(function(dbUserComments){
+            res.json(dbUserComments);
+        });
+});
+
 app.post("/comment/:articleid", function (req, res) {
     const articleId = req.params.articleid;
     db.UserComment.create(req.body)
@@ -104,6 +137,34 @@ app.post("/comment/:articleid", function (req, res) {
             return db.Article.findOneAndUpdate({ _id: articleId.toObjectId() }, { $push: { comments: dbUserComment._id } }, { new: true });
         });
 });
+
+app.post("/save-article/:articleid", function (req, res) {
+    const articleId = req.params.articleid;
+    const saveStatus = req.body.isSaved;
+    db.Article.findOneAndUpdate({ _id: articleId.toObjectId() }, { $set: { isSaved: saveStatus } })
+        .then(function (dbArticle) {
+            res.json(!dbArticle.isSaved);
+            // For some reason, isSaved of dbArticle is the isSaved before the update.
+        })
+});
+
+app.delete("/delete-comment/:commentid", function (req, res) {
+    const commmentId = req.params.commentid;
+
+    db.UserComment.findOneAndRemove({ _id: commmentId.toObjectId() })
+        .then(function (dbComment) {
+            res.json(`${dbComment._id} was removed.`)
+        });
+});
+
+// Helper Functions
+
+
+
+
+
+
+
 
 // Server Startup
 
